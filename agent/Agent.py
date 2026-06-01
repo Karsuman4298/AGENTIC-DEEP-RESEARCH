@@ -346,11 +346,7 @@ CRITICAL RULES
 
    Answer:
 
-   [Paragraph 1 — main findings from PRIMARY sources with citations]
-
-   [Paragraph 2 — supporting context, extensions, or CONTEXT sources]
-
-   [Paragraph 3+ — additional synthesis as needed]
+   give detailed answers but not out of context of the evidence provided.
 
    Uncertainty notes:
    - [aspect not covered by evidence]
@@ -560,11 +556,6 @@ def verify_citations(
         "faithfulness":      faithfulness,
     }
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# MAIN PIPELINE
-# ══════════════════════════════════════════════════════════════════════════════
-
 def run_question(
     question:    str,
     question_id: str,
@@ -588,9 +579,6 @@ def run_question(
     trace: List[Dict] = []
     tool_calls: int   = 0
 
-    # ------------------------------------------------------------------
-    # 1. Plan
-    # ------------------------------------------------------------------
     try:
         sub_qs = plan(question, use_planner=config.get("planner", True))
     except Exception as exc:
@@ -599,9 +587,7 @@ def run_question(
 
     trace.append({"step": "plan", "sub_questions": sub_qs})
 
-    # ------------------------------------------------------------------
-    # 2–3. Retrieve + Reflect loop
-    # ------------------------------------------------------------------
+   
     all_chunks:      List[Dict] = []
     seen_chunk_ids:  set        = set()
     current_queries: List[str]  = sub_qs

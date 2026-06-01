@@ -981,7 +981,7 @@ with st.sidebar:
 
     # Index paths
     st.markdown("**Index paths**")
-    index_dir  = st.text_input("FAISS index directory",  value="data/index")
+    index_dir  = st.text_input("ChromaDB index directory",  value="data/index")
     chunks_dir = st.text_input("Chunks directory", value="data/chunks")
 
     st.divider()
