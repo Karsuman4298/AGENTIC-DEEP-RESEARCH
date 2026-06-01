@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+.venv
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cache
+cache/
+.cache/
+*.pkl
+*.pickle
+
+# Logs
+logs/
+*.log
+
+# Data (large files)
+data/raw/
+data/index/
+data/chunks/
+
+# Predictions
+predictions/
+
+# ChromaDB
+data/index/chroma/
+
+# Temporary files
+*.tmp
+.ipynb_checkpoints/
+
+# System
+.Trash/
+.DS_Store

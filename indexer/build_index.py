@@ -1,11 +1,3 @@
-"""
-indexer/build_index.py — Build BM25 + ChromaDB retrieval indexes
-Resumable: ChromaDB skips existing chunks, BM25 loads from cache.
-CPU-only. All local. No API keys.
-
-Run: python indexer/build_index.py --chunks data/chunks --index data/index
-"""
-
 import argparse
 import json
 import logging
@@ -27,7 +19,7 @@ EMBED_MODEL    = "BAAI/bge-small-en-v1.5"
 RERANK_MODEL   = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 COLLECTION     = "arxiv_chunks"
 # Larger batch on GPU/MPS, conservative on CPU
-BATCH          = 64 if DEVICE in ("cuda", "mps") else 32
+BATCH  = 64 if DEVICE in ("cuda", "mps") else 32
 
 
 def load_all_chunks(chunks_dir: str) -> List[Dict]:
@@ -111,7 +103,7 @@ def build_index(chunks_dir: str = "data/chunks", index_dir: str = "data/index") 
 
     build_bm25(chunks, bm25_path)
     build_chroma(chunks, chroma_path)
-    log.info(f"✅ Index built → {index_dir}")
+    log.info(f" Index built → {index_dir}")
 
 
 if __name__ == "__main__":

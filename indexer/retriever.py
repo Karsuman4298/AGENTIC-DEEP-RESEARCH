@@ -1,14 +1,8 @@
-"""
-indexer/retriever.py — Hybrid BM25 + Semantic retrieval with optional reranking
-Ablation flags: use_hybrid, use_reranker
-"""
-
 import json
 import logging
 import pickle
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
 import numpy as np
 
 log = logging.getLogger(__name__)
@@ -17,12 +11,18 @@ import sys
 import torch
 from pathlib import Path as _Path
 sys.path.insert(0, str(_Path(__file__).parent.parent))
-DEVICE= "mps" if torch.backends.mps.is_available() else "cpu"
+
+DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
+
 EMBED_MODEL  = "BAAI/bge-small-en-v1.5"
 RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 COLLECTION   = "arxiv_chunks"
 RRF_K        = 60
+
+# --- HARD CUTOFF THRESHOLDS ---
+SEMANTIC_SIM_THRESHOLD = 0.40  # Reject cosine similarity values below 40%
+BM25_SCORE_THRESHOLD   = 1.0   # Reject documents with trivial keyword overlaps
 
 _embed_model  = None
 _rerank_model = None
@@ -57,13 +57,6 @@ def _rrf(bm25_list, sem_list, k=RRF_K) -> List:
 
 
 class Retriever:
-    """
-    Hybrid retriever. Load once, call retrieve() many times.
-
-    use_hybrid=False   → semantic only  (ablation: no_hybrid)
-    use_reranker=False → skip reranker  (ablation: no_reranker)
-    """
-
     def __init__(
         self,
         index_dir:    str  = "data/index",
@@ -122,7 +115,7 @@ class Retriever:
 
     def retrieve(self, query: str, top_k: int = 5, candidate_k: int = 30) -> List[Dict[str, Any]]:
         """
-        Retrieve top_k chunks for query.
+        Retrieve top_k chunks for query with strict similarity filtering to prevent hallucinations.
         Returns list of dicts with keys: chunk_id, arxiv_id, title, section, text, score
         """
         # Embed query
@@ -139,34 +132,47 @@ class Retriever:
             query_embeddings=[q_vec], n_results=n,
             include=["distances", "metadatas", "documents"],
         )
-        sem_list = [
-            (cid, 1.0 - dist)
-            for cid, dist in zip(res["ids"][0], res["distances"][0])
-        ]
+        
+        # --- CRITICAL FIX 1: SEMANTIC CUTOFF FILTER ---
+        sem_list = []
+        if res["ids"] and len(res["ids"][0]) > 0:
+            for cid, dist in zip(res["ids"][0], res["distances"][0]):
+                similarity = 1.0 - dist # Map Cosine space to similarity
+                if similarity >= SEMANTIC_SIM_THRESHOLD:
+                    sem_list.append((cid, similarity))
 
-        # BM25 + RRF
+        # --- CRITICAL FIX 2: BM25 CUTOFF FILTER ---
+        bm25_list = []
         if self.use_hybrid and self._bm25 is not None:
             bm25_scores = self._bm25.get_scores(query.lower().split())
-            bm25_list   = sorted(
-                zip(self._bm25_ids, bm25_scores.tolist()),
-                key=lambda x: x[1], reverse=True
-            )[:candidate_k]
-            fused       = _rrf(bm25_list, sem_list)
-            cand_ids    = [cid for cid, _ in fused[:candidate_k]]
+            raw_bm25 = zip(self._bm25_ids, bm25_scores.tolist())
+            
+            # Keep only chunks that actually hit clear keywords
+            filtered_bm25 = [
+                (cid, score) for cid, score in raw_bm25 
+                if score >= BM25_SCORE_THRESHOLD
+            ]
+            bm25_list = sorted(filtered_bm25, key=lambda x: x[1], reverse=True)[:candidate_k]
+
+        # --- FUSION EXECUTION BOUNDARIES ---
+        if self.use_hybrid and (bm25_list or sem_list):
+            fused = _rrf(bm25_list, sem_list)
+            cand_ids = [cid for cid, _ in fused[:candidate_k]]
         else:
+            # Fallback if hybrid is off or BM25 returned empty
             cand_ids = [cid for cid, _ in sem_list[:candidate_k]]
 
-        # Hydrate
+        # Hydrate chunks from store
         candidates = [self._store[cid] for cid in cand_ids if cid in self._store]
         if not candidates:
-            return []
+            return [] # Fail safely with an empty list if nothing matches
 
-        # Reranking
+        # Reranking Layer
         if self.use_reranker and len(candidates) > top_k:
             reranker = _get_reranker()
-            pairs    = [(query, c["text"][:512]) for c in candidates]
-            scores   = reranker.predict(pairs, batch_size=8).tolist()
-            ranked   = sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True)
+            pairs = [(query, c["text"][:512]) for c in candidates]
+            scores = reranker.predict(pairs, batch_size=8).tolist()
+            ranked = sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True)
             return [{**c, "score": round(float(s), 4)} for c, s in ranked[:top_k]]
         else:
             sem_map = {cid: sc for cid, sc in sem_list}

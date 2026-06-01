@@ -1,19 +1,9 @@
-"""
-indexer/chunk.py — Parse PDFs and split into chunks
-Section-aware: respects paper structure (Introduction, Methods, etc.)
-Resumable: skips already-chunked papers.
-
-Run: python indexer/chunk.py --raw data/raw --out data/chunks
-"""
-
 import argparse
 import json
 import logging
 import re
 from pathlib import Path
 from typing import List, Dict, Optional
-
-from streamlit import pdf
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
@@ -94,12 +84,21 @@ def chunk_paper(pdf_path: str, arxiv_id: str, title: str) -> List[Dict]:
 
     for sec in sections:
         for window in _windows(sec["text"]):
+            # --- CRITICAL FIX: HARD CONTEXT BOUNDARY INJECTION ---
+            # This embeds the absolute source info directly inside the text string payload.
+            # When the retriever pulls this text, the LLM cannot confuse the source.
+            structured_text = (
+                f"[DOCUMENT SOURCE PAPER: {title} (arXiv ID: {arxiv_id})]\n"
+                f"[SECTION: {sec['title']}]\n\n"
+                f"{window}"
+            )
+
             chunks.append({
                 "chunk_id":    f"{arxiv_id.replace('/','_')}_c{idx:04d}",
                 "arxiv_id":    arxiv_id,
                 "title":       title,
                 "section":     sec["title"],
-                "text":        window,
+                "text":        structured_text, # Swapped with our bounded context
                 "chunk_index": idx,
             })
             idx += 1
@@ -128,14 +127,14 @@ def chunk_corpus(raw_dir: str = "data/raw", out_dir: str = "data/chunks") -> int
             continue
 
         safe = aid.replace("/", "_")
-        pdf = p.get("pdf_path")
-        if not pdf:
-           pdf = raw / "pdfs" / f"{safe}.pdf"
-        if not Path(pdf).exists():
+        pdf_file = p.get("pdf_path")
+        if not pdf_file:
+            pdf_file = raw / "pdfs" / f"{safe}.pdf"
+        if not Path(pdf_file).exists():
             skipped += 1
             continue
 
-        chunks = chunk_paper(pdf, aid, p["title"])
+        chunks = chunk_paper(str(pdf_file), aid, p["title"])
         if not chunks:
             skipped += 1
             continue
@@ -144,11 +143,9 @@ def chunk_corpus(raw_dir: str = "data/raw", out_dir: str = "data/chunks") -> int
             for c in chunks:
                 f.write(json.dumps(c) + "\n")
         total += len(chunks)
-
         if (i+1) % 50 == 0:
             log.info(f"  {i+1}/{len(papers)} papers | {total} chunks so far")
-
-    log.info(f"✅ Chunking done: {total} chunks, {skipped} skipped")
+    log.info(f" Chunking done: {total} chunks, {skipped} skipped")
     return total
 
 
@@ -158,4 +155,3 @@ if __name__ == "__main__":
     ap.add_argument("--out", default="data/chunks")
     args = ap.parse_args()
     chunk_corpus(args.raw, args.out)
-    

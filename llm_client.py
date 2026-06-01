@@ -1,9 +1,3 @@
-"""
-llm_client.py — OpenAI-compatible wrapper for all free providers
-
-Uses openai Python library as unified interface.
-Install: pip install openai
-"""
 
 import logging
 import os
@@ -21,19 +15,18 @@ if _env.exists():
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
 
-# ── Provider configs ───────────────────────────────────────────
 PROVIDERS = {
     "ollama": {
         "base_url":    "http://localhost:11434/v1",
         "api_key":     "ollama",
-        "model":       "llama3.2:latest",      # matches your ollama ls
+        "model":       "llama3.2:latest",     
         "label":       "Ollama/llama3.2 (local)",
-        "key_env":     None,                   # no key needed
+        "key_env":     None,                   
     },
     "groq": {
         "base_url":    "https://api.groq.com/openai/v1",
-        "api_key":     None,                   # read from env
-        "model":       "llama-3.3-70b-versatile",  # updated model
+        "api_key":     None,                   
+        "model":       "llama-3.3-70b-versatile",  
         "label":       "Groq (free)",
         "key_env":     "GROQ_API_KEY",
     },
@@ -53,9 +46,8 @@ PROVIDERS = {
     },
 }
 
-# Ollama first — it's local and always fastest
-PRIORITY = ["ollama", "groq", "openrouter", "openai"]
-
+#set your own priority
+PRIORITY = [ "groq","ollama","openrouter", "openai"]
 
 def _ollama_running() -> bool:
     try:
@@ -82,10 +74,6 @@ def _get_client(name: str):
 
 
 def call_llm(prompt: str, max_tokens: int = 800) -> str:
-    """
-    Call LLM via OpenAI-compatible wrapper.
-    Priority: Ollama (local) → Groq → OpenRouter → OpenAI
-    """
     available = [p for p in PRIORITY if _is_available(p)]
 
     if not available:
@@ -126,7 +114,6 @@ def call_llm(prompt: str, max_tokens: int = 800) -> str:
 
 
 def call_llm_json(prompt: str, max_tokens: int = 600) -> dict:
-    """Call LLM and parse JSON from response."""
     import json
     raw = call_llm(
         prompt + "\n\nRespond ONLY with valid JSON. No markdown, no explanation.",

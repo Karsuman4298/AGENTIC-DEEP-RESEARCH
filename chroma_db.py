@@ -13,7 +13,6 @@ model = SentenceTransformer(
 )
 
 query = "What is ReAct prompting?"
-
 emb = model.encode(query).tolist()
 
 res = collection.query(

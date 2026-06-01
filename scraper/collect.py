@@ -1,22 +1,3 @@
-"""
-scraper/collect.py — Collect LLM-agent papers from arXiv API
-
-Fully flexible — pass any number of papers and any date range at runtime.
-
-Examples:
-  python scraper/collect.py                              # defaults: 700 papers, 2024-01-01 to 2026-04-30
-  python scraper/collect.py --max 5                      # quick test with 5 papers
-  python scraper/collect.py --max 50 --start 2025-01-01 # 50 papers from 2025
-  python scraper/collect.py --max 700 --start 2024-01-01 --end 2026-04-30  # full corpus
-  python scraper/collect.py --max 3 --skip_pdfs          # metadata only, no PDF download
-
-Output files:
-  data/raw/metadata.jsonl        ← one paper per line (JSON)
-  data/raw/pdfs/<arxiv_id>.pdf   ← downloaded PDFs
-
-metadata.jsonl fields:
-  arxiv_id, title, abstract, authors, published, pdf_url, pdf_path
-"""
 
 import argparse
 import json
@@ -33,12 +14,11 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 log = logging.getLogger(__name__)
-
-# ── arXiv API ──────────────────────────────────────────────────────────────────
+# arXiv API 
 NS  = "http://www.w3.org/2005/Atom"
 API = "http://export.arxiv.org/api/query"
 
-# ── Agent-related keywords (title OR abstract must contain at least one) ───────
+# Agent-related keywords (title OR abstract must contain at least one)
 KEYWORDS = [
     "llm agent",
     "language model agent",
@@ -224,7 +204,7 @@ def collect(
     seen:   set       = set()
     papers: List[Dict] = []
 
-    # ── Resume from existing ──────────────────────────────────────────────────
+    # Resume from existing 
     if meta_path.exists():
         with open(meta_path) as f:
             for line in f:
@@ -239,7 +219,7 @@ def collect(
         log.info(f"Already have {len(papers)} papers (max={max_papers}) — nothing to do")
         return papers
 
-    # ── Fetch from arXiv ──────────────────────────────────────────────────────
+    # Fetch from arXiv
     log.info(f"Collecting up to {max_papers} papers | {start_date} → {end_date}")
     for cat in CATEGORIES:
         if len(papers) >= max_papers:
@@ -289,22 +269,16 @@ def collect(
                 # Write immediately (crash-safe)
                 with open(meta_path, "a") as f:
                     f.write(json.dumps(p) + "\n")
-
                 log.info(f"  [{len(papers)}/{max_papers}] {p['arxiv_id']} — {p['title'][:60]}")
-
             offset += batch_size
             time.sleep(5)   # arXiv rate limit: 1 req/5s
-
         log.info(f"  {cat}: added {cat_added} papers")
-
     log.info(f"\n Done — {len(papers)} papers collected → {meta_path}")
     if not skip_pdfs:
         n_pdfs = sum(1 for p in papers if p.get("pdf_path"))
         log.info(f"   PDFs downloaded: {n_pdfs}/{len(papers)}")
     return papers
 
-
-# ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(
@@ -352,10 +326,7 @@ Examples:
         help="API batch size (default: 50, max: 100)"
     )
 
-
     args = ap.parse_args()
-
-    # Validate
     if args.max < 1:
         ap.error("--max must be at least 1")
     if args.max > 700:
