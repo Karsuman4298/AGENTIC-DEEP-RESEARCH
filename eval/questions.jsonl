@@ -1,0 +1,30 @@
+{"question_id": "f01", "type": "factoid", "question": "What is the ReAct prompting framework and how does it combine reasoning and acting in LLM agents?"}
+{"question_id": "f02", "type": "factoid", "question": "What is Self-RAG and how does it use reflection tokens to decide when to retrieve?"}
+{"question_id": "f03", "type": "factoid", "question": "What is the Reflexion framework and how does it enable LLM agents to learn from feedback?"}
+{"question_id": "f04", "type": "factoid", "question": "What are the main components of an agentic RAG system compared to standard RAG?"}
+{"question_id": "f05", "type": "factoid", "question": "What is Reciprocal Rank Fusion (RRF) and why is it used in hybrid retrieval?"}
+{"question_id": "f06", "type": "factoid", "question": "What benchmarks are commonly used to evaluate LLM agent performance in 2024-2025?"}
+{"question_id": "f07", "type": "factoid", "question": "How does tool use differ from function calling in the context of LLM agents?"}
+{"question_id": "f08", "type": "factoid", "question": "What is the LLM-as-judge evaluation paradigm and what are its main limitations?"}
+{"question_id": "f09", "type": "factoid", "question": "What types of memory do LLM agents use and how do they differ?"}
+{"question_id": "f10", "type": "factoid", "question": "What is a computer-use agent and what makes it different from other types of agents?"}
+{"question_id": "c01", "type": "comparative", "question": "Compare the planning strategies used in ReAct versus Reflexion for multi-step reasoning tasks."}
+{"question_id": "c02", "type": "comparative", "question": "How do Self-RAG and standard RAG differ in their approach to retrieval and generation?"}
+{"question_id": "c03", "type": "comparative", "question": "Compare BM25 and dense retrieval methods for document search in agentic systems. What are the tradeoffs?"}
+{"question_id": "c04", "type": "comparative", "question": "How do single-agent and multi-agent architectures compare in terms of task completion and coordination?"}
+{"question_id": "c05", "type": "comparative", "question": "Compare the evaluation methodologies used for web agents versus code generation agents."}
+{"question_id": "c06", "type": "comparative", "question": "What are the differences between short-term and long-term memory mechanisms in LLM agent architectures?"}
+{"question_id": "c07", "type": "comparative", "question": "How do open-source LLMs compare to proprietary models as agent backbones in 2024-2025 papers?"}
+{"question_id": "c08", "type": "comparative", "question": "Compare the approach to citation grounding in RAG systems versus agentic research systems."}
+{"question_id": "c09", "type": "comparative", "question": "How do tool-augmented LLMs and retrieval-augmented LLMs differ in their knowledge access mechanisms?"}
+{"question_id": "c10", "type": "comparative", "question": "Compare the latency and accuracy tradeoffs between one-shot and iterative agent approaches."}
+{"question_id": "s01", "type": "survey", "question": "Survey the main approaches to agent planning in 2024-2025 LLM research. What are the dominant strategies?"}
+{"question_id": "s02", "type": "survey", "question": "What are the key challenges in evaluating LLM agents and how have 2024-2025 papers addressed them?"}
+{"question_id": "s03", "type": "survey", "question": "Summarize the evolution of RAG systems from standard to agentic RAG in recent papers."}
+{"question_id": "s04", "type": "survey", "question": "What agent memory architectures have been proposed in 2024-2025 and what problems do they solve?"}
+{"question_id": "s05", "type": "survey", "question": "Survey the benchmarks introduced for evaluating LLM agents in 2024-2025. What capabilities do they test?"}
+{"question_id": "s06", "type": "survey", "question": "What are the main failure modes of LLM agents identified in 2024-2025 research?"}
+{"question_id": "s07", "type": "survey", "question": "How have multi-agent systems evolved in 2024-2025? What coordination mechanisms are used?"}
+{"question_id": "s08", "type": "survey", "question": "Summarize the approaches to tool use and function calling in recent LLM agent papers."}
+{"question_id": "s09", "type": "survey", "question": "What retrieval strategies are used in agentic RAG systems and which show the best results?"}
+{"question_id": "s10", "type": "survey", "question": "Survey the approaches to making LLM agents safer and more reliable in 2024-2025 research."}

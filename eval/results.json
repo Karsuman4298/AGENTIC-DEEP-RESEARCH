@@ -1,0 +1,86 @@
+[
+  {
+    "config": "baseline",
+    "n": 30,
+    "accuracy": 4.333,
+    "completeness": 3.333,
+    "coherence": 4.9,
+    "faithfulness": 0.96,
+    "cite_precision": 0.96,
+    "cite_recall": "N/A",
+    "avg_latency_s": 19.631,
+    "avg_tool_calls": 1.0
+  },
+  {
+    "config": "full_agent",
+    "n": 30,
+    "accuracy": 4.4,
+    "completeness": 3.4,
+    "coherence": 4.533,
+    "faithfulness": 0.168,
+    "cite_precision": 0.959,
+    "cite_recall": "N/A",
+    "avg_latency_s": 49.45,
+    "avg_tool_calls": 5.467
+  },
+  {
+    "config": "no_citation_verifier",
+    "n": 30,
+    "accuracy": 4.433,
+    "completeness": 3.333,
+    "coherence": 4.433,
+    "faithfulness": 0.977,
+    "cite_precision": 0.977,
+    "cite_recall": "N/A",
+    "avg_latency_s": 41.712,
+    "avg_tool_calls": 5.6
+  },
+  {
+    "config": "no_hybrid",
+    "n": 30,
+    "accuracy": 4.533,
+    "completeness": 3.433,
+    "coherence": 4.767,
+    "faithfulness": 0.211,
+    "cite_precision": 0.959,
+    "cite_recall": "N/A",
+    "avg_latency_s": 43.352,
+    "avg_tool_calls": 5.8
+  },
+  {
+    "config": "no_planner",
+    "n": 30,
+    "accuracy": 4.4,
+    "completeness": 3.4,
+    "coherence": 4.8,
+    "faithfulness": 0.275,
+    "cite_precision": 0.958,
+    "cite_recall": "N/A",
+    "avg_latency_s": 30.172,
+    "avg_tool_calls": 4.9
+  },
+  {
+    "config": "no_reflector",
+    "n": 30,
+    "accuracy": 4.4,
+    "completeness": 3.333,
+    "coherence": 4.6,
+    "faithfulness": 0.197,
+    "cite_precision": 0.971,
+    "cite_recall": "N/A",
+    "avg_latency_s": 28.83,
+    "avg_tool_calls": 1.767
+  },
+  {
+    "config": "no_reranker",
+    "n": 30,
+    "accuracy": 4.567,
+    "completeness": 3.567,
+    "coherence": 4.5,
+    "faithfulness": 0.176,
+    "cite_precision": 0.981,
+    "cite_recall": "N/A",
+    "avg_latency_s": 38.529,
+    "avg_tool_calls": 5.7
+  }
+]
