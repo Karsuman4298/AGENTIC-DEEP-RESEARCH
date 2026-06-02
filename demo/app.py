@@ -153,6 +153,67 @@ else:
         "sidebar_section":     "#444c7a",
     }
 
+# ══════════════════════════════════════════════════════════════════
+# SIDEBAR - MUST COME FIRST BEFORE CSS
+# ══════════════════════════════════════════════════════════════════
+with st.sidebar:
+    # Brand row + dark-mode toggle
+    col_brand, col_dm = st.columns([4, 1])
+    with col_brand:
+        st.markdown(
+            '<div class="sb-brand">Deep Research</div>'
+            '<div class="sb-sub">arXiv LLM-agent papers &middot; 2024&ndash;2026</div>',
+            unsafe_allow_html=True,
+        )
+    with col_dm:
+        st.markdown('<div class="dm-btn-wrap">', unsafe_allow_html=True)
+        dm_label = "🌙" if st.session_state.dark_mode else "☀️"
+        if st.button(dm_label, key="dark_toggle",
+                     help="Switch between dark and light mode"):
+            st.session_state.dark_mode = not st.session_state.dark_mode
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Agent component toggles
+    st.markdown("**Agent components**")
+    use_planner   = st.toggle("Planner",           value=True, key="toggle_planner", help="Decompose the question into targeted sub-questions before retrieval")
+    use_hybrid    = st.toggle("Hybrid retrieval",  value=True, key="toggle_hybrid", help="Combines BM25 keyword search with semantic embeddings via RRF fusion")
+    use_reranker  = st.toggle("Reranker",          value=True, key="toggle_reranker", help="Cross-encoder reranking of retrieved passages for higher precision")
+    use_reflector = st.toggle("Reflector",         value=True, key="toggle_reflector", help="Iterative evidence loop — repeats retrieval up to 3 rounds if gaps are found")
+    use_verifier  = st.toggle("Citation verifier", value=True, key="toggle_verifier", help="Lexical grounding check to flag hallucinated citations")
+
+    st.markdown("---")
+
+    # Index paths
+    st.markdown("**Index paths**")
+    index_dir  = st.text_input("ChromaDB index directory",  value="data/index", key="txt_index")
+    chunks_dir = st.text_input("Chunks directory", value="data/chunks", key="txt_chunks")
+
+    st.markdown("---")
+
+    # Ablation results table
+    results_path = Path("eval/results.json")
+    if results_path.exists():
+        st.markdown("**Ablation results**")
+        try:
+            with open(results_path) as f:
+                res_data = json.load(f)
+            import pandas as pd
+            df = pd.DataFrame([{
+                "Config":  r["config"],
+                "Acc":     r.get("accuracy",       "-"),
+                "Faith":   r.get("faithfulness",   "-"),
+                "Cite-P":  r.get("cite_precision", "-"),
+                "Lat(s)":  r.get("avg_latency_s",  "-"),
+            } for r in res_data])
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        except Exception:
+            st.caption("Could not parse results. Re-run evaluate.py.")
+    else:
+        st.caption("Run `python eval/evaluate.py` to populate the ablation table.")
+
 # ── CSS ────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
@@ -173,7 +234,8 @@ html, body, [class*="css"] {{
     min-height: 100vh;
 }}
 
-#MainMenu, footer, header {{ visibility: hidden; }}
+/* Only hide the default Streamlit menu and footer, NOT the sidebar */
+#MainMenu, footer {{ visibility: hidden; }}
 
 .block-container {{
     padding: 2.25rem 2.75rem 6rem 2.75rem !important;
@@ -368,6 +430,10 @@ button[data-testid*="baseButton-secondary"]:hover {{
 section[data-testid="stSidebar"] {{
     background: {T['sidebar_bg']} !important;
     border-right: 1.5px solid {T['border']} !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+    visibility: visible !important;
+    display: block !important;
 }}
 section[data-testid="stSidebar"] > div:first-child {{
     padding: 1.6rem 1.25rem 2rem 1.25rem !important;
@@ -942,69 +1008,6 @@ def format_answer_html(answer: str, id_to_num: dict) -> str:
         if p.strip()
     ]
     return "".join(paras) if paras else f"<p>{linked}</p>"
-
-
-# ══════════════════════════════════════════════════════════════════
-# SIDEBAR
-# ══════════════════════════════════════════════════════════════════
-with st.sidebar:
-
-    # Brand row + dark-mode toggle
-    col_brand, col_dm = st.columns([4, 1])
-    with col_brand:
-        st.markdown(
-            '<div class="sb-brand">Deep Research</div>'
-            '<div class="sb-sub">arXiv LLM-agent papers &middot; 2024&ndash;2026</div>',
-            unsafe_allow_html=True,
-        )
-    with col_dm:
-        st.markdown('<div class="dm-btn-wrap">', unsafe_allow_html=True)
-        dm_label = "Light" if st.session_state.dark_mode else "Dark"
-        if st.button(dm_label, key="dark_toggle",
-                     help="Switch between dark and light mode",
-                     use_container_width=True):
-            st.session_state.dark_mode = not st.session_state.dark_mode
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.divider()
-
-    # Agent component toggles
-    st.markdown("**Agent components**")
-    use_planner   = st.toggle("Planner",           value=True, help="Decompose the question into targeted sub-questions before retrieval")
-    use_hybrid    = st.toggle("Hybrid retrieval",  value=True, help="Combines BM25 keyword search with semantic embeddings via RRF fusion")
-    use_reranker  = st.toggle("Reranker",          value=True, help="Cross-encoder reranking of retrieved passages for higher precision")
-    use_reflector = st.toggle("Reflector",         value=True, help="Iterative evidence loop — repeats retrieval up to 3 rounds if gaps are found")
-    use_verifier  = st.toggle("Citation verifier", value=True, help="Lexical grounding check to flag hallucinated citations")
-
-    st.divider()
-
-    # Index paths
-    st.markdown("**Index paths**")
-    index_dir  = st.text_input("ChromaDB index directory",  value="data/index")
-    chunks_dir = st.text_input("Chunks directory", value="data/chunks")
-
-    st.divider()
-
-    # Ablation results table
-    results_path = Path("eval/results.json")
-    if results_path.exists():
-        st.markdown("**Ablation results**")
-        try:
-            res_data = json.load(open(results_path))
-            import pandas as pd
-            df = pd.DataFrame([{
-                "Config":  r["config"],
-                "Acc":     r.get("accuracy",       "-"),
-                "Faith":   r.get("faithfulness",   "-"),
-                "Cite-P":  r.get("cite_precision", "-"),
-                "Lat(s)":  r.get("avg_latency_s",  "-"),
-            } for r in res_data])
-            st.dataframe(df, use_container_width=True, hide_index=True)
-        except Exception:
-            st.caption("Could not parse results. Re-run evaluate.py.")
-    else:
-        st.caption("Run python eval/evaluate.py to populate the ablation table.")
 
 
 # ══════════════════════════════════════════════════════════════════
