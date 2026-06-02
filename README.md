@@ -127,6 +127,12 @@ Example:
 python run_pipeline.py --max 5 --skip_pdfs
 ```
 
+Run the full pipeline with the full corpus:
+
+```bash
+python run_pipeline.py --max 700
+```
+
 Useful flags:
 - `--skip_collect`
 - `--skip_index`
@@ -158,7 +164,7 @@ python eval/evaluate.py
 
 ### `demo/app.py`
 
-Launches the Streamlit demo UI.
+Launches the Streamlit demo UI. The interface includes a "Research trace" expander showing planner queries, retrieval rounds, reflector decisions, citation counts, and verifier results.
 
 ```bash
 streamlit run demo/app.py
