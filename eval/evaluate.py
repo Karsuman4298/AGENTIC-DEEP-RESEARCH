@@ -75,7 +75,7 @@ def score_file(pred_path: str, ground_truth: dict = None,
 
     config = Path(pred_path).stem
 
-    # ── LLM-as-judge ─────────────────────────────────────────
+    # LLM-as-judge
     judge_scores = []
     if use_llm_judge:
         log.info(f"  Judging {len(preds)} answers for '{config}'...")
@@ -90,9 +90,7 @@ def score_file(pred_path: str, ground_truth: dict = None,
             for _ in preds
         ]
 
-    # ── Faithfulness ─────────────────────────────────────────
-    # Use the 'faithfulness' field from agent.py (lexical overlap verifier)
-    # Falls back to verification_rate for backward compat with old predictions
+    # Faithfulness
     faithfulness_scores = []
     for p in preds:
         # New field written by fixed agent.py
@@ -105,7 +103,7 @@ def score_file(pred_path: str, ground_truth: dict = None,
             f = max(0.0, f)
         faithfulness_scores.append(float(f))
 
-    # ── Citation precision ────────────────────────────────────
+    # Citation precision
     # = (cited - hallucinated) / cited
     precisions = []
     for p in preds:
@@ -117,7 +115,7 @@ def score_file(pred_path: str, ground_truth: dict = None,
             prec = 1.0
         precisions.append(prec)
 
-    # ── Citation recall ───────────────────────────────────────
+    # Citation recall
     # Needs ground truth with "must_cite" field
     recalls = []
     if ground_truth:

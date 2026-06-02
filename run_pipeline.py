@@ -17,7 +17,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -111,7 +110,7 @@ Examples:
     else:
         log.info("Skipping collection (--skip_collect)")
 
-    # ── Step 2: Chunk ─────────────────────────────────────────
+    # Step 2:─  Chunk 
     if not args.skip_index:
         chunk_files = list(Path("data/chunks").glob("*_chunks.jsonl"))
         if chunk_files:
@@ -122,7 +121,7 @@ Examples:
                 "Step 2: Chunking PDFs"
             )
 
-        # ── Step 3: Build index ───────────────────────────────
+        # Step 3: Build index 
         bm25_ok   = Path("data/index/bm25.pkl").exists()
         chroma_ok = Path("data/index/chroma").exists()
         if bm25_ok and chroma_ok:
@@ -135,7 +134,7 @@ Examples:
     else:
         log.info("Skipping index build (--skip_index)")
 
-    # ── Step 4: Run agent configs ─────────────────────────────
+    # Step 4: Run agent configs
     if not args.skip_agent:
         cfg_str = " ".join(args.configs)
         run(
@@ -145,7 +144,7 @@ Examples:
     else:
         log.info("Skipping agent run (--skip_agent)")
 
-    # ── Step 5: Evaluate ──────────────────────────────────────
+    # Step 5: Evaluate
     judge_flag = "--no_llm_judge" if args.no_llm_judge else ""
     run(
         f"python eval/evaluate.py --preds predictions/ --output eval/results.json {judge_flag}",

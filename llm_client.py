@@ -1,16 +1,7 @@
 """
-llm_client.py
--------------
 LLM provider abstraction with automatic failover, retry/backoff,
 and JSON extraction.
 
-Changes from v1:
-  - Added exponential backoff retry (3 attempts per provider)
-  - Added rate-limit detection (429 errors skip to next provider faster)
-  - Improved JSON extraction (handles nested, malformed, partial JSON)
-  - Added token usage logging for cost monitoring
-  - Fixed: empty string response no longer silently retried as success
-  - Added SYSTEM prompt support (separate system/user messages)
 """
 
 import json
@@ -24,7 +15,7 @@ from typing import Any, Dict, Optional
 
 log = logging.getLogger(__name__)
 
-# ── Auto-load .env ─────────────────────────────────────────────────────────────
+# Auto-load .env
 _env = Path(".env")
 if _env.exists():
     for _line in _env.read_text().splitlines():
@@ -33,7 +24,7 @@ if _env.exists():
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
 
-# ── Provider registry ─────────────────────────────────────────────────────────
+# Provider registry
 PROVIDERS: Dict[str, Dict[str, Any]] = {
     "ollama": {
         "base_url": "http://localhost:11434/v1",
@@ -41,7 +32,6 @@ PROVIDERS: Dict[str, Dict[str, Any]] = {
         "model":    "llama3.2:latest",
         "label":    "Ollama/llama3.2 (local)",
         "key_env":  None,
-        # Retry config per provider
         "max_retries": 2,
         "retry_delay": 1.0,
     },
@@ -74,14 +64,11 @@ PROVIDERS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# Provider priority — first available is tried first
 PRIORITY = ["groq", "ollama", "openrouter", "openai"]
 
 
-# ── Provider availability ─────────────────────────────────────────────────────
-
+# Provider availability
 def _ollama_running() -> bool:
-    """Check if local Ollama server is reachable."""
     try:
         import urllib.request
         urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2)
@@ -91,7 +78,6 @@ def _ollama_running() -> bool:
 
 
 def _is_available(name: str) -> bool:
-    """Return True if provider has required credentials / is reachable."""
     cfg = PROVIDERS[name]
     if name == "ollama":
         return _ollama_running()
@@ -105,8 +91,7 @@ def _get_client(name: str):
     return OpenAI(api_key=api_key, base_url=cfg["base_url"])
 
 
-# ── Core LLM call ─────────────────────────────────────────────────────────────
-
+# Core LLM call
 def call_llm(
     prompt:      str,
     max_tokens:  int            = 800,
@@ -230,7 +215,7 @@ def call_llm(
     )
 
 
-# ── JSON-mode call ────────────────────────────────────────────────────────────
+# JSON-mode call
 
 def call_llm_json(
     prompt:     str,
@@ -239,8 +224,6 @@ def call_llm_json(
 ) -> Dict[str, Any]:
     """
     Call LLM and parse response as JSON.
-
-    FIX v2:
       - Multi-stage extraction: tries strict parse → regex object → regex array
       - Handles markdown code fences (```json ... ```)
       - Handles JSON embedded in prose
@@ -270,7 +253,7 @@ def call_llm_json(
     # Stage 1: Strip markdown fences
     cleaned = re.sub(r"```(?:json)?", "", raw).strip().strip("`").strip()
 
-    # Stage 2: Direct parse
+    # Stage2: Direct parse
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:

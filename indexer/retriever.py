@@ -1,20 +1,3 @@
-"""
-indexer/retriever.py — Hybrid retriever, tuned thresholds for small corpus
-
-Threshold rationale (BGE-small on ~500 papers):
-  SEMANTIC_SIM_THRESHOLD = 0.20  — BGE-small cosine similarities cluster
-                                    around 0.15-0.45 on a domain corpus.
-                                    0.35 was cutting ~80% of valid chunks.
-  BM25_SCORE_THRESHOLD   = 0.5   — Raw BM25 on short keyword queries rarely
-                                    exceeds 2.0; 1.0 was too strict.
-  RERANKER_SCORE_GATE    = -5.0  — Cross-encoder logits: truly irrelevant
-                                    chunks score below -5. -2.0 was cutting
-                                    borderline-relevant chunks.
-
-Citation safety is enforced in agent.py via the allowed_ids whitelist,
-NOT here. Retriever's job is recall; agent's job is precision.
-"""
-
 import json
 import logging
 import pickle
@@ -46,12 +29,10 @@ RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 COLLECTION   = "arxiv_chunks"
 RRF_K        = 60
 
-# ── Tuned thresholds ───────────────────────────────────────────
-# Purpose: high recall so synthesizer has enough evidence to work with.
-# Citation hallucination prevention is handled in agent.py, not here.
-SEMANTIC_SIM_THRESHOLD = 0.20   # was 0.35 — too aggressive for BGE-small
-BM25_SCORE_THRESHOLD   = 0.5    # was 1.0  — too strict for keyword queries
-RERANKER_SCORE_GATE    = -5.0   # was -2.0 — cutting valid borderline chunks
+
+SEMANTIC_SIM_THRESHOLD = 0.20   
+BM25_SCORE_THRESHOLD   = 0.5    
+RERANKER_SCORE_GATE    = -5.0   
 
 _embed_model  = None
 _rerank_model = None

@@ -1,21 +1,3 @@
-"""
-agent/agent.py — Closed-world evidence-grounded research engine
-
-What makes full_agent beat baseline:
-  1. Planner generates multiple targeted queries → more relevant chunks
-  2. Reflector loops to fill gaps baseline misses in one shot
-  3. Synthesizer gets richer evidence → longer, better-cited answer
-  4. Citation whitelist prevents hallucination without hurting recall
-  5. Verifier catches any drift that slips through
-
-Key tuning vs previous version:
-  - RELEVANCE_THRESHOLD lowered 0.35 → 0.15 (retriever now passes chunks
-    with scores 0.20-0.35 which are valid for small corpora)
-  - MIN_RELEVANT_CHUNKS lowered 2 → 1 (don't refuse on single good chunk)
-  - Synthesis prompt rewritten: richer output format → higher judge scores
-  - Reflector gate raised 5 → 3 (stop sooner, synthesize with what we have)
-"""
-
 import logging
 import re
 import sys
@@ -30,13 +12,8 @@ from indexer.retriever import Retriever
 log = logging.getLogger(__name__)
 
 MAX_ROUNDS          = 3
-MIN_RELEVANT_CHUNKS = 1      # refuse only if truly zero relevant chunks
-RELEVANCE_THRESHOLD = 0.15   # lowered: valid chunks on small corpus score 0.15-0.40
-
-
-# ══════════════════════════════════════════════════
-# CONFIGS
-# ══════════════════════════════════════════════════
+MIN_RELEVANT_CHUNKS = 1    
+RELEVANCE_THRESHOLD = 0.15  
 
 CONFIGS: Dict[str, Dict[str, bool]] = {
     "full_agent":           {"planner": True,  "hybrid": True,  "reranker": True,  "reflector": True,  "verifier": True},
@@ -47,11 +24,6 @@ CONFIGS: Dict[str, Dict[str, bool]] = {
     "no_hybrid":            {"planner": True,  "hybrid": False, "reranker": True,  "reflector": True,  "verifier": True},
     "no_citation_verifier": {"planner": True,  "hybrid": True,  "reranker": True,  "reflector": True,  "verifier": False},
 }
-
-
-# ══════════════════════════════════════════════════
-# HELPERS
-# ══════════════════════════════════════════════════
 
 def _extract_keywords(text: str, max_terms: int = 5) -> List[str]:
     """Rule-based keyword extraction — no LLM needed."""
@@ -92,10 +64,6 @@ def _strip_disallowed_citations(text: str, allowed_ids: set) -> str:
         return ""
     return re.sub(r"\[arxiv:([^\]]+)\]", replace, text, flags=re.IGNORECASE)
 
-
-# ══════════════════════════════════════════════════
-# COMPONENT 1: PLANNER
-# ══════════════════════════════════════════════════
 
 def plan(question: str, use_planner: bool = True) -> List[str]:
     """
@@ -152,10 +120,6 @@ def plan(question: str, use_planner: bool = True) -> List[str]:
     return kw if kw else [q]
 
 
-# ══════════════════════════════════════════════════
-# COMPONENT 2: REFLECTOR
-# ══════════════════════════════════════════════════
-
 def reflect(
     question:      str,
     chunks:        List[Dict],
@@ -209,7 +173,7 @@ def reflect(
     )
 
     try:
-        r          = call_llm_json(prompt, max_tokens=200)
+        r = call_llm_json(prompt, max_tokens=200)
         sufficient = bool(r.get("sufficient", len(relevant) >= MIN_RELEVANT_CHUNKS))
         refined    = [str(q).strip() for q in r.get("refined_queries", [])[:2]
                       if str(q).strip()]
@@ -219,12 +183,7 @@ def reflect(
     except Exception as e:
         log.warning(f"Reflector LLM failed ({e}) — heuristic fallback")
         return len(relevant) >= MIN_RELEVANT_CHUNKS, []
-
-
-# ══════════════════════════════════════════════════
-# COMPONENT 3: SYNTHESIZER
-# ══════════════════════════════════════════════════
-
+    
 _SYNTH_PROMPT = """\
 You are a research assistant writing a comprehensive answer grounded in retrieved \
 academic paper passages.
@@ -325,18 +284,12 @@ def synthesize(question: str, chunks: List[Dict]) -> Tuple[str, List[str]]:
         log.error(f"Synthesizer failed: {e}")
         return f"Error during synthesis: {e}", []
 
-
-# ══════════════════════════════════════════════════
-# COMPONENT 4: CITATION VERIFIER
-# ══════════════════════════════════════════════════
-
 def verify_citations(
     answer:       str,
     cited_ids:    List[str],
     chunks:       List[Dict],
     use_verifier: bool = True,
 ) -> Dict[str, Any]:
-    """Lexical overlap grounding check — fast, no extra LLM calls."""
     if not cited_ids:
         return {
             "verified_ids":      [],
@@ -416,11 +369,6 @@ def verify_citations(
         "verification_rate": faithfulness,
         "faithfulness":      faithfulness,
     }
-
-
-# ══════════════════════════════════════════════════
-# MAIN PIPELINE
-# ══════════════════════════════════════════════════
 
 def run_question(
     question:    str,
