@@ -14,6 +14,13 @@ This repository contains tools to:
 
 ---
 
+# Demo
+A demonstration video of the Agentic Deep Research System is available in the GitHub Releases section.
+
+Release: v1
+Demo Video:
+https://github.com/Karsuman4298/AGENTIC-DEEP-RESEARCH/releases/tag/v1
+
 ## Project Overview
 
 The system is designed for evidence-grounded research Q&A on papers about agentic systems and language model agents.
