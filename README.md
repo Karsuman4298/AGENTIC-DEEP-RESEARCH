@@ -21,6 +21,9 @@ Release: v1
 Demo Video:
 https://github.com/Karsuman4298/AGENTIC-DEEP-RESEARCH/releases/tag/v1
 
+<img width="2940" height="1668" alt="image" src="https://github.com/user-attachments/assets/0db6eda7-1b9e-4abe-a47e-885118d89523" />
+
+
 ## Project Overview
 
 The system is designed for evidence-grounded research Q&A on papers about agentic systems and language model agents.
