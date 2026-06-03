@@ -271,9 +271,10 @@ If one provider fails, it retries and moves to the next available provider.
 
 ## Recommended Workflow
 
-1. Collect papers: `python scraper/collect.py --max 50 --skip_pdfs`
-2. Chunk PDFs: `python indexer/chunk.py --raw data/raw --out data/chunks`
-3. Build indexes: `python indexer/build_index.py --chunks data/chunks --index data/index`
-4. Run the agent: `python run.py --config full_agent`
-5. Evaluate: `python eval/evaluate.py`
-6. Demo: `streamlit run demo/app.py`
+1. Collect paper's metadata: `python scraper/collect.py --max 500 --skip_pdfs`
+2. Download the paper's PDF: `python run download_pdfs.py`
+3. Chunk PDFs: `python indexer/chunk.py --raw data/raw --out data/chunks`
+4. Build indexes: `python indexer/build_index.py --chunks data/chunks --index data/index`
+5. Run the agent: `python run.py --config full_agent`
+6. Evaluate: `python eval/evaluate.py`
+7. Demo: `streamlit run demo/app.py`
